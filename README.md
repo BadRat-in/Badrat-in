@@ -10,8 +10,8 @@
   <a href="https://github.com/RKInnovate">
     <img src="https://img.shields.io/badge/Founder%20of-RK%20Innovate-orange?style=for-the-badge&logo=github&logoColor=white" alt="RK Innovate Badge">
   </a>
-  <a href="mailto:rbmorena42@gmail.com">
-    <img src="https://img.shields.io/badge/Email-rbmorena42@gmail.com-blueviolet?style=for-the-badge&logo=gmail&logoColor=white" alt="Email Badge">
+  <a href="mailto:ravindra@budgurjar.org">
+    <img src="https://img.shields.io/badge/Email-ravindra@budgurjar.org-blueviolet?style=for-the-badge&logo=gmail&logoColor=white" alt="Email Badge">
   </a>
 </p>
 
