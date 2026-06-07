@@ -44,10 +44,3 @@ I architect and ship products end-to-end — from system design to the last pixe
 
 `TypeScript` · `Python` · `Rust` · `Swift` · `Dart` · `Go`
 `React` · `Flutter` · `Django` · `FastAPI` · `GCP` · `AWS`
-
----
-
-<p align="center">
-  <img src="https://github-readme-stats.vercel.app/api?username=badrat-in&show_icons=true&hide_border=true&include_all_commits=true&count_private=true&theme=transparent&title_color=7C3AED&icon_color=7C3AED&text_color=8B949E" height="160" alt="GitHub stats">
-  <img src="https://github-readme-stats.vercel.app/api/top-langs/?username=badrat-in&layout=compact&hide_border=true&theme=transparent&title_color=7C3AED&text_color=8B949E&include_all_commits=true&count_private=true" height="160" alt="Top languages">
-</p>
