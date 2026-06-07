@@ -29,7 +29,7 @@ Cards produced
 ==============
 - ``banner.svg``     : neofetch-style intro with ASCII initials + key stats.
 - ``languages.svg``  : horizontal bar chart of top languages by byte size.
-- ``activity.svg``   : last-30-day rollup + 15-week ASCII contribution heatmap.
+- ``activity.svg``   : last-30-day rollup + 30-week ASCII contribution heatmap.
 - ``top-repos.svg``  : table of top original repos sorted by stars.
 
 Run
@@ -268,11 +268,12 @@ def process_data(raw: dict[str, Any]) -> dict[str, Any]:
     last30_active = sum(1 for d in last30 if d["count"] > 0)
     best = max(last30, key=lambda d: d["count"]) if last30 else {"count": 0, "date": ""}
 
-    # 15-week heatmap: 7 rows (Mon..Sun) x N columns (oldest -> newest L -> R).
+    # ~30-week heatmap: 7 rows (Mon..Sun) x N columns (oldest -> newest L -> R).
     # GitHub's API returns Sun-anchored weeks; we re-index by ``date.weekday()``
     # so the visual matches a Mon-first calendar (which reads more naturally for
-    # most viewers than Sun-first).
-    weeks_to_show = 15
+    # most viewers than Sun-first). 30 weeks (~7 months) fills the 760px card
+    # width without crowding.
+    weeks_to_show = 30
     recent_weeks = raw["contributionsCollection"]["contributionCalendar"]["weeks"][-weeks_to_show:]
     heatmap = [[0] * len(recent_weeks) for _ in range(7)]
     for col, week in enumerate(recent_weeks):
@@ -549,7 +550,7 @@ def render_languages(d: dict[str, Any]) -> str:
     dots on repo pages), keeping the card visually consistent with GitHub's
     own UI.
     """
-    w, h = 540, 320
+    w, h = 760, 300
     svg = [_shell_chrome(w, h, "languages")]
     svg.append(_prompt_line(20, 56, "langstat", "--owner --by=bytes"))
 
@@ -560,8 +561,9 @@ def render_languages(d: dict[str, Any]) -> str:
         )
         return "".join(svg)
 
-    bar_x = 130
-    bar_max = 280  # px reserved for the bar track
+    bar_x = 150
+    pct_w = 90  # px reserved on the right for the percentage label
+    bar_max = w - bar_x - pct_w - 20  # bar track stretches to fill the card
     y0 = 95
     row_h = 32
     pct_x = bar_x + bar_max + 18
@@ -592,22 +594,20 @@ def render_languages(d: dict[str, Any]) -> str:
             f'<text x="{pct_x}" y="{y}" class="orange">{pct:.1f}%</text>'
         )
 
-    # Footer: prompt cursor to suggest a live shell.
-    svg.append(_prompt_line(20, h - 24, "_", ""))
     svg.append("</svg>")
     return "".join(svg)
 
 
 def render_activity(d: dict[str, Any]) -> str:
     """
-    Last-30-day rollup + 15-week ASCII contribution heatmap.
+    Last-30-day rollup + 30-week ASCII contribution heatmap.
 
     Top half: three big numbers (commits, active days, best day). Bottom half:
-    a Mon..Sun x 15-week grid of small squares coloured by contribution count
+    a Mon..Sun x N-week grid of small squares coloured by contribution count
     -- a ``git log --graph``-flavoured take on the standard contribution heat
     grid.
     """
-    w, h = 540, 360
+    w, h = 760, 372
     svg = [_shell_chrome(w, h, "activity")]
     svg.append(_prompt_line(20, 56, "contrib", "--since=30d"))
 
@@ -637,20 +637,21 @@ def render_activity(d: dict[str, Any]) -> str:
             f'class="label small">{_xml_escape(label)}</text>'
         )
 
-    # Heatmap section header.
-    svg.append(_prompt_line(20, 190, "heatmap", "--weeks=15"))
+    # Grid data first, so the section header can report the real week span.
+    heat = d["heatmap"]
+    max_day = max(1, d["max_day"])
+    weeks = len(heat[0]) if heat and heat[0] else 0
 
-    # 7 x 15 grid. Cell ~16px square, 4px gap. The row labels (Mon/Wed/Fri)
+    # Heatmap section header.
+    svg.append(_prompt_line(20, 190, "heatmap", f"--weeks={weeks}"))
+
+    # 7 x N grid. Cell ~16px square, 4px gap. The row labels (Mon/Wed/Fri)
     # sit to the left, matching GitHub's own contribution graph idiom.
     cell = 16
     gap = 4
     grid_x = 60
     grid_y = 210
     row_labels = ["Mon", "", "Wed", "", "Fri", "", ""]
-
-    heat = d["heatmap"]
-    max_day = max(1, d["max_day"])
-    weeks = len(heat[0]) if heat and heat[0] else 0
 
     for row in range(7):
         if row_labels[row]:
@@ -681,22 +682,6 @@ def render_activity(d: dict[str, Any]) -> str:
                 f'rx="3" fill="{shade}"/>'
             )
 
-    # Legend at the bottom right -- "less ... more" with the ramp.
-    legend_x = grid_x + weeks * (cell + gap) - (5 * (cell + 2)) - 60
-    legend_y = grid_y + 7 * (cell + gap) + 12
-    svg.append(
-        f'<text x="{legend_x}" y="{legend_y}" class="dim small">less</text>'
-    )
-    for i, c in enumerate(HEATMAP_RAMP):
-        svg.append(
-            f'<rect x="{legend_x + 36 + i * (cell - 2)}" y="{legend_y - 10}" '
-            f'width="{cell - 4}" height="{cell - 4}" rx="2" fill="{c}"/>'
-        )
-    svg.append(
-        f'<text x="{legend_x + 36 + len(HEATMAP_RAMP) * (cell - 2) + 6}" '
-        f'y="{legend_y}" class="dim small">more</text>'
-    )
-
     svg.append("</svg>")
     return "".join(svg)
 
@@ -709,7 +694,7 @@ def render_top_repos(d: dict[str, Any]) -> str:
     plus a short truncated description below. We cap at 4 entries -- past that,
     the card stops being scan-friendly and starts being a wall of text.
     """
-    w, h = 540, 340
+    w, h = 760, 340
     svg = [_shell_chrome(w, h, "top-repos")]
     svg.append(_prompt_line(20, 56, "gh repo list", "--sort=stars --limit=4"))
 
@@ -724,10 +709,10 @@ def render_top_repos(d: dict[str, Any]) -> str:
     y0 = 90
     for i, r in enumerate(repos):
         y = y0 + i * row_h
-        name = _truncate(r["name"], 22)
+        name = _truncate(r["name"], 30)
         lang = r["language"]
         stars = r["stars"]
-        desc = _truncate(r["description"], 62) or "(no description)"
+        desc = _truncate(r["description"], 92) or "(no description)"
 
         # Row separator above each entry except the first -- mimics a divided
         # table without adding visual noise of a full grid.

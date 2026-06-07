@@ -64,5 +64,3 @@ I architect and ship products end-to-end — from system design to the last pixe
 <p align="center">
   <img src="./stats/top-repos.svg" alt="Top repositories by stars">
 </p>
-
-<sub align="center"><i>Cards rendered by <a href="./.github/scripts/build_cards.py">a self-hosted Python script</a> — no external services in the request path.</i></sub>
