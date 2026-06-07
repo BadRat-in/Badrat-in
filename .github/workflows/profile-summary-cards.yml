@@ -1,0 +1,22 @@
+name: GitHub Profile Summary Cards
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Daily at 00:00 UTC (05:30 IST)
+    - cron: "0 0 * * *"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: generate
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: vn7n24fzkq/github-profile-summary-cards@release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          USERNAME: badrat-in
+          UTC_OFFSET: 5
