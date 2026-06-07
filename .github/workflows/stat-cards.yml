@@ -9,17 +9,16 @@
 # To render the full picture, add a personal access token as the STATS_TOKEN
 # repo secret (read:user + repo scope); the job prefers it when present.
 #
-# SCHEDULE: the daily cron is intentionally disabled until STATS_TOKEN is set --
-# otherwise an automated run would overwrite the full numbers with public-only
-# ones. Run on demand via the Actions tab ("Run workflow") meanwhile. Re-enable
-# by uncommenting the `schedule` block below once the secret exists.
+# SCHEDULE: runs daily and on demand. The job reads STATS_TOKEN so the numbers
+# reflect the full (private-inclusive) picture rather than the public-only view
+# the default GITHUB_TOKEN would produce.
 name: Profile stat cards
 
 on:
   workflow_dispatch:
-  # schedule:
-  #   # Daily at 00:00 UTC (05:30 IST)
-  #   - cron: "0 0 * * *"
+  schedule:
+    # Daily at 00:00 UTC (05:30 IST)
+    - cron: "0 0 * * *"
 
 permissions:
   contents: write
