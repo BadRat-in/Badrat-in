@@ -42,5 +42,5 @@ I architect and ship products end-to-end — from system design to the last pixe
 
 ### Stack
 
-`TypeScript` · `Python` · `Rust` · `Swift` · `Dart` · `Go`
+`TypeScript` · `Python` · `Rust` · `Swift` · `Dart` · `Go` ·
 `React` · `Flutter` · `Django` · `FastAPI` · `GCP` · `AWS`
