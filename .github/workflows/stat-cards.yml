@@ -1,0 +1,45 @@
+# Regenerates the terminal-style profile stat cards in stats/ from live GitHub
+# data and commits any changes back to the repo. Runs daily and on demand.
+#
+# The card SVGs are rendered by .github/scripts/build_cards.py (pure stdlib --
+# no dependency install needed). The default GITHUB_TOKEN can read public
+# profile data via the GraphQL API; private-contribution counts may differ from
+# a local run made with a personal token that has broader scope.
+name: Profile stat cards
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Daily at 00:00 UTC (05:30 IST)
+    - cron: "0 0 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: generate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Generate cards
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python .github/scripts/build_cards.py
+
+      - name: Commit refreshed cards
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ -n "$(git status --porcelain stats/)" ]; then
+            git add stats/
+            git commit -m "chore: refresh profile stat cards [skip ci]"
+            git push
+          else
+            echo "No changes to stat cards."
+          fi
