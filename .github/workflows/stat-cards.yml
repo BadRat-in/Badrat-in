@@ -1,17 +1,25 @@
 # Regenerates the terminal-style profile stat cards in stats/ from live GitHub
-# data and commits any changes back to the repo. Runs daily and on demand.
+# data and commits any changes back to the repo.
 #
 # The card SVGs are rendered by .github/scripts/build_cards.py (pure stdlib --
-# no dependency install needed). The default GITHUB_TOKEN can read public
-# profile data via the GraphQL API; private-contribution counts may differ from
-# a local run made with a personal token that has broader scope.
+# no dependency install needed).
+#
+# TOKEN: the default GITHUB_TOKEN only sees PUBLIC data, which understates the
+# numbers (private PRs/issues/commits and private-repo languages are dropped).
+# To render the full picture, add a personal access token as the STATS_TOKEN
+# repo secret (read:user + repo scope); the job prefers it when present.
+#
+# SCHEDULE: the daily cron is intentionally disabled until STATS_TOKEN is set --
+# otherwise an automated run would overwrite the full numbers with public-only
+# ones. Run on demand via the Actions tab ("Run workflow") meanwhile. Re-enable
+# by uncommenting the `schedule` block below once the secret exists.
 name: Profile stat cards
 
 on:
   workflow_dispatch:
-  schedule:
-    # Daily at 00:00 UTC (05:30 IST)
-    - cron: "0 0 * * *"
+  # schedule:
+  #   # Daily at 00:00 UTC (05:30 IST)
+  #   - cron: "0 0 * * *"
 
 permissions:
   contents: write
@@ -29,7 +37,9 @@ jobs:
 
       - name: Generate cards
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Prefer STATS_TOKEN (full, private-inclusive view) when configured;
+          # fall back to the repo's default token (public-only) otherwise.
+          GITHUB_TOKEN: ${{ secrets.STATS_TOKEN || secrets.GITHUB_TOKEN }}
         run: python .github/scripts/build_cards.py
 
       - name: Commit refreshed cards
