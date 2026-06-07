@@ -137,6 +137,11 @@ query ($login: String!) {
         }
       }
     }
+    # Separate count of forks we own (the main `repositories` field filters
+    # them out with isFork:false). Lets the banner show "N (+M forks)".
+    forkedRepos: repositories(ownerAffiliations: OWNER, isFork: true) {
+      totalCount
+    }
     contributionsCollection {
       totalCommitContributions
       totalPullRequestContributions
@@ -295,6 +300,7 @@ def process_data(raw: dict[str, Any]) -> dict[str, Any]:
         "followers": raw["followers"]["totalCount"],
         "following": raw["following"]["totalCount"],
         "total_repos": raw["repositories"]["totalCount"],
+        "owned_forks": raw["forkedRepos"]["totalCount"],
         "total_stars": total_stars,
         "total_forks": total_forks,
         "total_prs": raw["pullRequests"]["totalCount"],
@@ -528,7 +534,7 @@ def render_banner(d: dict[str, Any]) -> str:
         ("role", "Founder · RK Innovate", "orange"),
         ("uptime", f"{d['years']:.1f} years on GitHub", "green"),
         ("stack", stack_summary, "yellow"),
-        ("repos", f"{d['total_repos']}", "orange"),
+        ("repos", f"{d['total_repos']} (+{d['owned_forks']} forks)", "orange"),
         ("stars", f"★ {d['total_stars']}", "orange"),
         ("PRs", f"{d['total_prs']}", "orange"),
         ("issues", f"{d['total_issues']}", "orange"),
